@@ -89,10 +89,10 @@ export default function SquadPage() {
     try {
       const res = await upvoteSquad(id, getDeviceId());
       setVoteCount(res.votes);
+      localStorage.setItem(`soheads_voted_${id}`, "1");
       if (res.alreadyVoted) {
         toast("You've already voted on this squad");
       } else {
-        localStorage.setItem(`soheads_voted_${id}`, "1");
         toast.success("Thanks for voting");
       }
     } catch (e: any) {

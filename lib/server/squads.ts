@@ -207,7 +207,8 @@ export async function upvoteSquadDb(id: string, device_id: string) {
   const { error } = await supabaseAdmin
     .from("squad_votes")
     .insert({ squad_id: id, voter_device_id: device_id });
-  if (error && !error.message.includes("duplicate")) {
+  // 23505 = unique_violation (duplicate vote) — expected, not an error
+  if (error && (error as any).code !== "23505") {
     throw new Error(error.message);
   }
   const { data: row } = await supabaseAdmin
