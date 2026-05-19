@@ -3,7 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Funnel as Filter, Plus, X, MagnifyingGlass as Search, CircleNotch as Loader2 } from "@phosphor-icons/react";
+import {
+  Funnel as Filter,
+  Plus,
+  X,
+  MagnifyingGlass as Search,
+  CircleNotch as Loader2,
+} from "@phosphor-icons/react";
 import { listSquads } from "@/app/actions/squads";
 import { searchPlayers } from "@/app/actions/sorare";
 import { SquadList, type SquadListSummary } from "@/components/SquadListItem";
@@ -11,12 +17,13 @@ import { HotPlayers } from "@/components/HotPlayers";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+  Dialog,
+  DialogContent,
+  DialogClose,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -185,7 +192,7 @@ export default function HomePage() {
         </div>
       )}
 
-      <FiltersDrawer
+      <FiltersDialog
         open={filtersOpen}
         onOpenChange={setFiltersOpen}
         competition={competition}
@@ -201,6 +208,7 @@ export default function HomePage() {
         players={players}
         setPlayers={setPlayers}
         onClearAll={clearAll}
+        activeCount={activeCount}
       />
 
       <div className="mt-8">
@@ -236,6 +244,284 @@ export default function HomePage() {
           );
         }}
       />
+    </div>
+  );
+}
+
+function FiltersDialog({
+  open,
+  onOpenChange,
+  competition,
+  setCompetition,
+  gameweek,
+  setGameweek,
+  rarity,
+  setRarity,
+  formation,
+  setFormation,
+  tags,
+  setTags,
+  players,
+  setPlayers,
+  onClearAll,
+  activeCount,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  competition: string;
+  setCompetition: (v: string) => void;
+  gameweek: string;
+  setGameweek: (v: string) => void;
+  rarity: string;
+  setRarity: (v: string) => void;
+  formation: string;
+  setFormation: (v: string) => void;
+  tags: string[];
+  setTags: (v: string[] | ((prev: string[]) => string[])) => void;
+  players: PickedPlayer[];
+  setPlayers: (v: PickedPlayer[] | ((prev: PickedPlayer[]) => PickedPlayer[])) => void;
+  onClearAll: () => void;
+  activeCount: number;
+}) {
+  function toggleTag(t: string) {
+    setTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <div className="flex items-center gap-2">
+            <DialogTitle>Filter squads</DialogTitle>
+            {activeCount > 0 && (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+                {activeCount}
+              </span>
+            )}
+          </div>
+          <DialogClose />
+        </DialogHeader>
+
+        <div className="divide-y divide-border/50">
+          {/* Selects */}
+          <div className="px-5 py-4">
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Match filters
+            </p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <FilterSelect
+                label="Competition"
+                value={competition}
+                onChange={setCompetition}
+                options={COMPETITIONS as readonly string[]}
+              />
+              <FilterSelect
+                label="Gameweek"
+                value={gameweek}
+                onChange={setGameweek}
+                options={GAMEWEEKS}
+              />
+              <FilterSelect
+                label="Rarity"
+                value={rarity}
+                onChange={setRarity}
+                options={[...RARITY_ORDER, "mixed"] as readonly string[]}
+                renderLabel={(v) => (v === "mixed" ? "Mixed" : RARITY_LABEL[v] ?? v)}
+              />
+              <FilterSelect
+                label="Formation"
+                value={formation}
+                onChange={setFormation}
+                options={["5", "7"]}
+                renderLabel={(v) => `${v}-a-side`}
+              />
+            </div>
+          </div>
+
+          {/* Tags */}
+          <div className="px-5 py-4">
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Squad tags
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {ADDITIONAL_TAGS.map((t) => {
+                const active = tags.includes(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => toggleTag(t)}
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-xs font-medium transition",
+                      active
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border/60 text-foreground hover:border-foreground/50",
+                    )}
+                  >
+                    #{t}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Players */}
+          <div className="px-5 py-4">
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Must include player
+            </p>
+            <PlayerPicker
+              selected={players}
+              onAdd={(p) =>
+                setPlayers((prev) => (prev.some((x) => x.slug === p.slug) ? prev : [...prev, p]))
+              }
+              onRemove={(slug) => setPlayers((prev) => prev.filter((x) => x.slug !== slug))}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <button
+            onClick={onClearAll}
+            className="text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+          >
+            Clear all
+          </button>
+          <Button onClick={() => onOpenChange(false)} className="rounded-full" size="sm">
+            Show squads
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function PlayerPicker({
+  selected,
+  onAdd,
+  onRemove,
+}: {
+  selected: PickedPlayer[];
+  onAdd: (p: PickedPlayer) => void;
+  onRemove: (slug: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [debounced, setDebounced] = useState("");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(query.trim()), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const { data, isFetching } = useQuery({
+    queryKey: ["squad-filter-search", debounced],
+    queryFn: () => searchPlayers(debounced),
+    enabled: debounced.length >= 2,
+  });
+
+  const results = (data?.players ?? []).filter(
+    (p) => !selected.some((s) => s.slug === p.slug),
+  );
+
+  return (
+    <div className="space-y-2">
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selected.map((p) => (
+            <span
+              key={p.slug}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 py-1 pl-2.5 pr-2 text-xs font-medium"
+            >
+              {p.displayName}
+              <button
+                onClick={() => onRemove(p.slug)}
+                className="flex h-4 w-4 items-center justify-center rounded-full text-muted-foreground transition hover:bg-foreground/10 hover:text-foreground"
+              >
+                <X className="h-2.5 w-2.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search a player to require…"
+          className="rounded-full border-border/60 bg-background pl-9 text-sm"
+        />
+      </div>
+
+      {debounced.length >= 2 && (
+        <div className="max-h-44 overflow-y-auto rounded-xl border border-border/60 bg-background">
+          {isFetching ? (
+            <div className="flex items-center justify-center py-5 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </div>
+          ) : results.length === 0 ? (
+            <div className="py-5 text-center text-xs text-muted-foreground">No players found.</div>
+          ) : (
+            <ul className="divide-y divide-border/40">
+              {results.slice(0, 8).map((p) => (
+                <li key={p.slug}>
+                  <button
+                    onClick={() => {
+                      onAdd({ slug: p.slug, displayName: p.displayName, pictureUrl: p.pictureUrl });
+                      setQuery("");
+                      setDebounced("");
+                    }}
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition hover:bg-accent"
+                  >
+                    <span className="min-w-0 flex-1 truncate">{p.displayName}</span>
+                    {p.position && (
+                      <span className="shrink-0 rounded-full border border-border/60 px-1.5 py-0.5 text-[10px] font-semibold">
+                        {p.position}
+                      </span>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+  renderLabel,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: readonly string[];
+  renderLabel?: (v: string) => string;
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        {label}
+      </label>
+      <Select value={value || "__all"} onValueChange={(v) => onChange(!v || v === "__all" ? "" : v)}>
+        <SelectTrigger className="w-full rounded-lg border-border/60 bg-background text-xs">
+          <SelectValue placeholder="All" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__all">All</SelectItem>
+          {options.map((o) => (
+            <SelectItem key={o} value={o}>
+              {renderLabel ? renderLabel(o) : o}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
@@ -310,270 +596,6 @@ function ActiveChip({ label, onClear }: { label: string; onClear: () => void }) 
         <X className="h-3 w-3" />
       </button>
     </span>
-  );
-}
-
-function FiltersDrawer({
-  open,
-  onOpenChange,
-  competition,
-  setCompetition,
-  gameweek,
-  setGameweek,
-  rarity,
-  setRarity,
-  formation,
-  setFormation,
-  tags,
-  setTags,
-  players,
-  setPlayers,
-  onClearAll,
-}: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  competition: string;
-  setCompetition: (v: string) => void;
-  gameweek: string;
-  setGameweek: (v: string) => void;
-  rarity: string;
-  setRarity: (v: string) => void;
-  formation: string;
-  setFormation: (v: string) => void;
-  tags: string[];
-  setTags: (v: string[] | ((prev: string[]) => string[])) => void;
-  players: PickedPlayer[];
-  setPlayers: (v: PickedPlayer[] | ((prev: PickedPlayer[]) => PickedPlayer[])) => void;
-  onClearAll: () => void;
-}) {
-  function toggleTag(t: string) {
-    setTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
-  }
-
-  return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[90vh] border-border/60 bg-card">
-        <div className="mx-auto w-full max-w-2xl">
-          <DrawerHeader className="text-left">
-            <DrawerTitle>Filter squads</DrawerTitle>
-          </DrawerHeader>
-
-          <div className="space-y-5 px-4 pb-2">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <FilterSelect
-                label="Competition"
-                value={competition}
-                onChange={setCompetition}
-                options={COMPETITIONS as readonly string[]}
-              />
-              <FilterSelect
-                label="Gameweek"
-                value={gameweek}
-                onChange={setGameweek}
-                options={GAMEWEEKS}
-              />
-              <FilterSelect
-                label="Rarity"
-                value={rarity}
-                onChange={setRarity}
-                options={[...RARITY_ORDER, "mixed"] as readonly string[]}
-                renderLabel={(v) => (v === "mixed" ? "Mixed rarities" : RARITY_LABEL[v] ?? v)}
-              />
-              <FilterSelect
-                label="Formation"
-                value={formation}
-                onChange={setFormation}
-                options={["5", "7"]}
-                renderLabel={(v) => `${v}-a-side`}
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                Additional tags
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {ADDITIONAL_TAGS.map((t) => {
-                  const active = tags.includes(t);
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => toggleTag(t)}
-                      className={cn(
-                        "rounded-full border px-3 py-1 text-xs font-medium transition",
-                        active
-                          ? "border-foreground bg-foreground text-background"
-                          : "border-border/60 text-foreground hover:border-foreground/60",
-                      )}
-                    >
-                      #{t}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                Players included
-              </label>
-              <PlayerPicker
-                selected={players}
-                onAdd={(p) => {
-                  setPlayers((prev) =>
-                    prev.some((x) => x.slug === p.slug) ? prev : [...prev, p],
-                  );
-                }}
-                onRemove={(slug) =>
-                  setPlayers((prev) => prev.filter((x) => x.slug !== slug))
-                }
-              />
-            </div>
-          </div>
-
-          <DrawerFooter className="flex-row justify-between gap-2">
-            <Button variant="ghost" onClick={onClearAll} className="rounded-full">
-              Clear all
-            </Button>
-            <Button onClick={() => onOpenChange(false)} className="rounded-full">
-              Show squads
-            </Button>
-          </DrawerFooter>
-        </div>
-      </DrawerContent>
-    </Drawer>
-  );
-}
-
-function PlayerPicker({
-  selected,
-  onAdd,
-  onRemove,
-}: {
-  selected: PickedPlayer[];
-  onAdd: (p: PickedPlayer) => void;
-  onRemove: (slug: string) => void;
-}) {
-  const [query, setQuery] = useState("");
-  const [debounced, setDebounced] = useState("");
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(query.trim()), 300);
-    return () => clearTimeout(t);
-  }, [query]);
-
-  const { data, isFetching } = useQuery({
-    queryKey: ["squad-filter-search", debounced],
-    queryFn: () => searchPlayers(debounced),
-    enabled: debounced.length >= 2,
-  });
-
-  const results = (data?.players ?? []).filter(
-    (p) => !selected.some((s) => s.slug === p.slug),
-  );
-
-  return (
-    <div className="space-y-2">
-      {selected.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {selected.map((p) => (
-            <span
-              key={p.slug}
-              className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background py-1 pl-1 pr-2 text-xs"
-            >
-              <span className="font-medium">{p.displayName}</span>
-              <button onClick={() => onRemove(p.slug)} className="text-muted-foreground hover:text-foreground">
-                <X className="h-3 w-3" />
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search a player to require…"
-          className="rounded-full border-border/60 bg-background pl-9"
-        />
-      </div>
-
-      {debounced.length >= 2 && (
-        <div className="max-h-48 overflow-y-auto rounded-xl border border-border/60 bg-background">
-          {isFetching ? (
-            <div className="flex items-center justify-center py-6 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-            </div>
-          ) : results.length === 0 ? (
-            <div className="py-6 text-center text-xs text-muted-foreground">No players found.</div>
-          ) : (
-            <ul className="divide-y divide-border/40">
-              {results.slice(0, 8).map((p) => (
-                <li key={p.slug}>
-                  <button
-                    onClick={() => {
-                      onAdd({
-                        slug: p.slug,
-                        displayName: p.displayName,
-                        pictureUrl: p.pictureUrl,
-                      });
-                      setQuery("");
-                      setDebounced("");
-                    }}
-                    className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-accent"
-                  >
-                    <span className="min-w-0 flex-1 truncate text-sm">{p.displayName}</span>
-                    {p.position && (
-                      <span className="rounded-full border border-border/60 px-1.5 py-0.5 text-[10px] font-semibold">
-                        {p.position}
-                      </span>
-                    )}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function FilterSelect({
-  label,
-  value,
-  onChange,
-  options,
-  renderLabel,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: readonly string[];
-  renderLabel?: (v: string) => string;
-}) {
-  return (
-    <div>
-      <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-        {label}
-      </label>
-      <Select value={value || "__all"} onValueChange={(v) => onChange(!v || v === "__all" ? "" : v)}>
-        <SelectTrigger className="w-full rounded-xl border-border/60 bg-background">
-          <SelectValue placeholder="All" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="__all">All</SelectItem>
-          {options.map((o) => (
-            <SelectItem key={o} value={o}>
-              {renderLabel ? renderLabel(o) : o}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
   );
 }
 
