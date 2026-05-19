@@ -10,19 +10,19 @@ export const RARITY_LABEL: Record<string, string> = {
 };
 
 export const RARITY_DOT: Record<string, string> = {
-  common: "bg-rarity-common",
-  limited: "bg-rarity-limited",
-  rare: "bg-rarity-rare",
-  super_rare: "bg-rarity-super-rare",
-  unique: "bg-rarity-unique",
+  common: "bg-slate-400",
+  limited: "bg-amber-400",
+  rare: "bg-red-500",
+  super_rare: "bg-blue-500",
+  unique: "bg-violet-500",
 };
 
 export const RARITY_RING: Record<string, string> = {
-  common: "ring-rarity-common",
-  limited: "ring-rarity-limited",
-  rare: "ring-rarity-rare",
-  super_rare: "ring-rarity-super-rare",
-  unique: "ring-rarity-unique",
+  common: "ring-slate-400",
+  limited: "ring-amber-400",
+  rare: "ring-red-500",
+  super_rare: "ring-blue-500",
+  unique: "ring-violet-500",
 };
 
 export function normaliseRarity(r: string): string {
