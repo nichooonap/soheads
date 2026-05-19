@@ -24,7 +24,7 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="group flex items-center">
           <span className="text-lg italic uppercase tracking-tight font-extrabold">
-            SOHEAD
+            SOHEADS
           </span>
         </Link>
         {isBuild ? (

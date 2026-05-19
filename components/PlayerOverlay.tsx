@@ -57,7 +57,6 @@ export function PlayerOverlay({ open, onClose, position, onSelect }: Props) {
     queryKey: ["popular", position],
     queryFn: () => getPopularPlayers(position),
     enabled: open && debounced.length < 2,
-    staleTime: 1000 * 60 * 60,
   });
 
   const isSearching = debounced.length >= 2;
