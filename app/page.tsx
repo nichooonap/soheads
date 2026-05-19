@@ -511,7 +511,9 @@ function FilterSelect({
       </label>
       <Select value={value || "__all"} onValueChange={(v) => onChange(!v || v === "__all" ? "" : v)}>
         <SelectTrigger className="w-full rounded-lg border-border/60 bg-background text-xs">
-          <SelectValue placeholder="All" />
+          <SelectValue>
+            {value ? (renderLabel ? renderLabel(value) : value) : "All"}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="__all">All</SelectItem>

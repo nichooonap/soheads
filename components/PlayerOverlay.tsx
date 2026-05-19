@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MagnifyingGlass as Search, CircleNotch as Loader2, ArrowLeft, Check } from "@phosphor-icons/react";
-import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { searchPlayers, getPlayerCards, getPopularPlayers, type CardVariant } from "@/app/actions/sorare";
@@ -64,16 +64,17 @@ export function PlayerOverlay({ open, onClose, position, onSelect }: Props) {
   const loading = isSearching ? isFetching : popularLoading;
 
   return (
-    <Drawer open={open} onOpenChange={(v: boolean) => !v && onClose()}>
-      <DrawerContent className="max-h-[90vh] border-border/60 bg-card p-0">
-        <DrawerTitle className="sr-only">
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="flex flex-col overflow-hidden p-0 max-h-[88vh]">
+        <DialogTitle className="sr-only">
           {picked ? `Choose card for ${picked.displayName}` : `Select ${position} player`}
-        </DrawerTitle>
+        </DialogTitle>
 
         {!picked ? (
           <div className="flex h-full flex-col">
-            <div className="flex items-center gap-2 border-b border-border/60 p-4 pr-12">
-              <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold tracking-wider text-primary">
+            {/* Search header */}
+            <div className="flex items-center gap-2 border-b border-border/60 p-4">
+              <span className="shrink-0 rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold tracking-wider text-primary">
                 {position}
               </span>
               <div className="relative flex-1">
@@ -88,7 +89,8 @@ export function PlayerOverlay({ open, onClose, position, onSelect }: Props) {
               </div>
             </div>
 
-            <div className="max-h-[60vh] overflow-y-auto p-2">
+            {/* Results */}
+            <div className="flex-1 overflow-y-auto p-2">
               {!isSearching && (
                 <div className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Popular {position} players
@@ -117,7 +119,7 @@ export function PlayerOverlay({ open, onClose, position, onSelect }: Props) {
                           </div>
                         </div>
                         {p.position && (
-                          <span className="rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-semibold">
+                          <span className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-[10px] font-semibold">
                             {p.position}
                           </span>
                         )}
@@ -146,8 +148,8 @@ export function PlayerOverlay({ open, onClose, position, onSelect }: Props) {
             }}
           />
         )}
-      </DrawerContent>
-    </Drawer>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -178,7 +180,7 @@ function CardPicker({
 
   const allCards = (data?.cards ?? []).filter((c) => {
     if (!allowedSorarePositions.length) return true;
-    if (!c.position) return true; // unknown — keep
+    if (!c.position) return true;
     return allowedSorarePositions.includes(c.position);
   });
 
@@ -186,13 +188,11 @@ function CardPicker({
   const [seasonMode, setSeasonMode] = useState<"in_season" | "classic">("in_season");
   const [rarity, setRarity] = useState<string>("limited");
 
-  // Available rarities for this player+position (sorted by canonical order).
   const rarityOrder = ["common", "limited", "rare", "super_rare", "unique"];
   const availableRarities = rarityOrder.filter((r) =>
     allCards.some((c) => normaliseRarity(c.rarity) === r),
   );
 
-  // Auto-pick first available rarity if current isn't available.
   useEffect(() => {
     if (availableRarities.length && !availableRarities.includes(rarity)) {
       setRarity(availableRarities[0]);
@@ -204,7 +204,6 @@ function CardPicker({
     return seasonMode === "in_season" ? c.inSeason : !c.inSeason;
   });
 
-  // Reset pick when filters change and current pick is no longer visible.
   useEffect(() => {
     if (picked && !filtered.some((c) => c.rarity === picked.rarity && c.seasonYear === picked.seasonYear)) {
       setPicked(null);
@@ -213,6 +212,7 @@ function CardPicker({
 
   return (
     <div className="flex h-full flex-col">
+      {/* Header */}
       <div className="flex items-center gap-3 border-b border-border/60 p-4">
         <Button variant="ghost" size="icon" onClick={onBack} className="rounded-full">
           <ArrowLeft className="h-4 w-4" />
@@ -225,6 +225,7 @@ function CardPicker({
         </div>
       </div>
 
+      {/* Filter controls */}
       {!isLoading && allCards.length > 0 && (
         <div className="space-y-3 border-b border-border/60 px-4 py-3">
           <div className="inline-flex w-full rounded-full border border-border/60 bg-background p-0.5">
@@ -261,7 +262,8 @@ function CardPicker({
         </div>
       )}
 
-      <div className="max-h-[45vh] overflow-y-auto p-4">
+      {/* Card grid */}
+      <div className="flex-1 overflow-y-auto p-4">
         {isLoading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -324,6 +326,7 @@ function CardPicker({
         )}
       </div>
 
+      {/* Footer */}
       <div className="border-t border-border/60 p-4">
         <Button
           className="w-full rounded-full"
