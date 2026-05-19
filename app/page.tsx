@@ -1,65 +1,603 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { Funnel as Filter, Plus, X, MagnifyingGlass as Search, CircleNotch as Loader2 } from "@phosphor-icons/react";
+import { listSquads } from "@/app/actions/squads";
+import { searchPlayers } from "@/app/actions/sorare";
+import { SquadList, type SquadListSummary } from "@/components/SquadListItem";
+import { HotPlayers } from "@/components/HotPlayers";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ADDITIONAL_TAGS, COMPETITIONS, GAMEWEEKS } from "@/lib/lookups";
+import { RARITY_LABEL, RARITY_ORDER } from "@/lib/rarity";
+import { cn } from "@/lib/utils";
+
+const TABS = [
+  { value: "top_all", label: "Top all time" },
+  { value: "top_week", label: "Top this week" },
+  { value: "top_month", label: "Top this month" },
+  { value: "new", label: "New" },
+] as const;
+
+type Sort = (typeof TABS)[number]["value"];
+
+type PickedPlayer = { slug: string; displayName: string; pictureUrl: string | null };
+
+const PAGE_SIZE = 10;
+
+export default function HomePage() {
+  const [sort, setSort] = useState<Sort>("top_all");
+  const [votesDir, setVotesDir] = useState<"asc" | "desc">("desc");
+  const [competition, setCompetition] = useState<string>("");
+  const [gameweek, setGameweek] = useState<string>("");
+  const [rarity, setRarity] = useState<string>("");
+  const [formation, setFormation] = useState<string>("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [players, setPlayers] = useState<PickedPlayer[]>([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [page, setPage] = useState(1);
+
+  const params = useMemo(
+    () => ({
+      sort,
+      competition: competition || null,
+      gameweek: gameweek || null,
+      rarity: rarity || null,
+      formation: formation ? (Number(formation) as 5 | 7) : null,
+      additional_tags: tags.length ? tags : null,
+      player_slugs: players.length ? players.map((p) => p.slug) : null,
+    }),
+    [sort, competition, gameweek, rarity, formation, tags, players],
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [sort, competition, gameweek, rarity, formation, tags, players, votesDir]);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["squads", params],
+    queryFn: () => listSquads(params as any),
+  });
+
+  const allSquads = (data?.squads ?? []) as SquadListSummary[];
+  const sortedSquads = useMemo(
+    () =>
+      [...allSquads].sort((a, b) =>
+        votesDir === "desc" ? b.votes_count - a.votes_count : a.votes_count - b.votes_count,
+      ),
+    [allSquads, votesDir],
+  );
+  const totalPages = Math.max(1, Math.ceil(sortedSquads.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const squads = sortedSquads.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  const activeCount =
+    (competition ? 1 : 0) +
+    (gameweek ? 1 : 0) +
+    (rarity ? 1 : 0) +
+    (formation ? 1 : 0) +
+    tags.length +
+    players.length;
+
+  function clearAll() {
+    setCompetition("");
+    setGameweek("");
+    setRarity("");
+    setFormation("");
+    setTags([]);
+    setPlayers([]);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
+      <section className="mb-10">
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+          Build your dream lineup.
+        </h1>
+        <p className="mt-3 max-w-xl text-muted-foreground">
+          Mix any players, any rarities, any seasons. Save it. Share it. See what the community
+          votes the best.
+        </p>
+      </section>
+
+      <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-2">
+        <div className="-mx-4 flex flex-1 gap-1 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0">
+          {TABS.map((t) => (
+            <button
+              key={t.value}
+              onClick={() => setSort(t.value)}
+              className={cn(
+                "shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition",
+                sort === t.value
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              {t.label}
+            </button>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0 rounded-full"
+          onClick={() => setFiltersOpen(true)}
+        >
+          <Filter className="mr-1.5 h-3.5 w-3.5" />
+          Filters
+          {activeCount > 0 && (
+            <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+              {activeCount}
+            </span>
+          )}
+        </Button>
+      </div>
+
+      {activeCount > 0 && (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {competition && <ActiveChip label={competition} onClear={() => setCompetition("")} />}
+          {gameweek && <ActiveChip label={gameweek} onClear={() => setGameweek("")} />}
+          {rarity && (
+            <ActiveChip
+              label={rarity === "mixed" ? "Mixed rarities" : RARITY_LABEL[rarity] ?? rarity}
+              onClear={() => setRarity("")}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          )}
+          {formation && (
+            <ActiveChip label={`${formation}-a-side`} onClear={() => setFormation("")} />
+          )}
+          {tags.map((t) => (
+            <ActiveChip
+              key={t}
+              label={`#${t}`}
+              onClear={() => setTags((prev) => prev.filter((x) => x !== t))}
+            />
+          ))}
+          {players.map((p) => (
+            <ActiveChip
+              key={p.slug}
+              label={p.displayName}
+              onClear={() => setPlayers((prev) => prev.filter((x) => x.slug !== p.slug))}
+            />
+          ))}
+          <button
+            onClick={clearAll}
+            className="text-xs font-medium text-muted-foreground underline-offset-2 hover:underline"
           >
-            Documentation
-          </a>
+            Clear all
+          </button>
         </div>
-      </main>
+      )}
+
+      <FiltersDrawer
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        competition={competition}
+        setCompetition={setCompetition}
+        gameweek={gameweek}
+        setGameweek={setGameweek}
+        rarity={rarity}
+        setRarity={setRarity}
+        formation={formation}
+        setFormation={setFormation}
+        tags={tags}
+        setTags={setTags}
+        players={players}
+        setPlayers={setPlayers}
+        onClearAll={clearAll}
+      />
+
+      <div className="mt-8">
+        {isLoading ? (
+          <div className="flex flex-col gap-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-24 animate-pulse rounded-2xl border border-border/60 bg-card" />
+            ))}
+          </div>
+        ) : squads.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <>
+            <SquadList
+              squads={squads}
+              votesDir={votesDir}
+              onToggleVotes={() => setVotesDir((d) => (d === "desc" ? "asc" : "desc"))}
+            />
+            {totalPages > 1 && (
+              <Pagination page={currentPage} totalPages={totalPages} onChange={setPage} />
+            )}
+          </>
+        )}
+      </div>
+
+      <HotPlayers
+        selectedSlugs={players.map((p) => p.slug)}
+        onToggle={(p) => {
+          setPlayers((prev) =>
+            prev.some((x) => x.slug === p.slug)
+              ? prev.filter((x) => x.slug !== p.slug)
+              : [...prev, p],
+          );
+        }}
+      />
+    </div>
+  );
+}
+
+function Pagination({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  onChange: (p: number) => void;
+}) {
+  const pages: (number | "…")[] = [];
+  const win = 1;
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || Math.abs(i - page) <= win) {
+      pages.push(i);
+    } else if (pages[pages.length - 1] !== "…") {
+      pages.push("…");
+    }
+  }
+  return (
+    <div className="mt-6 flex items-center justify-center gap-1">
+      <Button
+        variant="outline"
+        size="sm"
+        className="rounded-full"
+        onClick={() => onChange(Math.max(1, page - 1))}
+        disabled={page <= 1}
+      >
+        Previous
+      </Button>
+      {pages.map((p, i) =>
+        p === "…" ? (
+          <span key={`e${i}`} className="px-2 text-sm text-muted-foreground">
+            …
+          </span>
+        ) : (
+          <button
+            key={p}
+            onClick={() => onChange(p)}
+            className={cn(
+              "h-8 min-w-8 rounded-full px-2.5 text-sm font-medium transition",
+              p === page
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {p}
+          </button>
+        ),
+      )}
+      <Button
+        variant="outline"
+        size="sm"
+        className="rounded-full"
+        onClick={() => onChange(Math.min(totalPages, page + 1))}
+        disabled={page >= totalPages}
+      >
+        Next
+      </Button>
+    </div>
+  );
+}
+
+function ActiveChip({ label, onClear }: { label: string; onClear: () => void }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2.5 py-1 text-xs font-medium">
+      {label}
+      <button onClick={onClear} className="text-muted-foreground hover:text-foreground">
+        <X className="h-3 w-3" />
+      </button>
+    </span>
+  );
+}
+
+function FiltersDrawer({
+  open,
+  onOpenChange,
+  competition,
+  setCompetition,
+  gameweek,
+  setGameweek,
+  rarity,
+  setRarity,
+  formation,
+  setFormation,
+  tags,
+  setTags,
+  players,
+  setPlayers,
+  onClearAll,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  competition: string;
+  setCompetition: (v: string) => void;
+  gameweek: string;
+  setGameweek: (v: string) => void;
+  rarity: string;
+  setRarity: (v: string) => void;
+  formation: string;
+  setFormation: (v: string) => void;
+  tags: string[];
+  setTags: (v: string[] | ((prev: string[]) => string[])) => void;
+  players: PickedPlayer[];
+  setPlayers: (v: PickedPlayer[] | ((prev: PickedPlayer[]) => PickedPlayer[])) => void;
+  onClearAll: () => void;
+}) {
+  function toggleTag(t: string) {
+    setTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[90vh] border-border/60 bg-card">
+        <div className="mx-auto w-full max-w-2xl">
+          <DrawerHeader className="text-left">
+            <DrawerTitle>Filter squads</DrawerTitle>
+          </DrawerHeader>
+
+          <div className="space-y-5 px-4 pb-2">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <FilterSelect
+                label="Competition"
+                value={competition}
+                onChange={setCompetition}
+                options={COMPETITIONS as readonly string[]}
+              />
+              <FilterSelect
+                label="Gameweek"
+                value={gameweek}
+                onChange={setGameweek}
+                options={GAMEWEEKS}
+              />
+              <FilterSelect
+                label="Rarity"
+                value={rarity}
+                onChange={setRarity}
+                options={[...RARITY_ORDER, "mixed"] as readonly string[]}
+                renderLabel={(v) => (v === "mixed" ? "Mixed rarities" : RARITY_LABEL[v] ?? v)}
+              />
+              <FilterSelect
+                label="Formation"
+                value={formation}
+                onChange={setFormation}
+                options={["5", "7"]}
+                renderLabel={(v) => `${v}-a-side`}
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Additional tags
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {ADDITIONAL_TAGS.map((t) => {
+                  const active = tags.includes(t);
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => toggleTag(t)}
+                      className={cn(
+                        "rounded-full border px-3 py-1 text-xs font-medium transition",
+                        active
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border/60 text-foreground hover:border-foreground/60",
+                      )}
+                    >
+                      #{t}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Players included
+              </label>
+              <PlayerPicker
+                selected={players}
+                onAdd={(p) => {
+                  setPlayers((prev) =>
+                    prev.some((x) => x.slug === p.slug) ? prev : [...prev, p],
+                  );
+                }}
+                onRemove={(slug) =>
+                  setPlayers((prev) => prev.filter((x) => x.slug !== slug))
+                }
+              />
+            </div>
+          </div>
+
+          <DrawerFooter className="flex-row justify-between gap-2">
+            <Button variant="ghost" onClick={onClearAll} className="rounded-full">
+              Clear all
+            </Button>
+            <Button onClick={() => onOpenChange(false)} className="rounded-full">
+              Show squads
+            </Button>
+          </DrawerFooter>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+function PlayerPicker({
+  selected,
+  onAdd,
+  onRemove,
+}: {
+  selected: PickedPlayer[];
+  onAdd: (p: PickedPlayer) => void;
+  onRemove: (slug: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [debounced, setDebounced] = useState("");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(query.trim()), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const { data, isFetching } = useQuery({
+    queryKey: ["squad-filter-search", debounced],
+    queryFn: () => searchPlayers(debounced),
+    enabled: debounced.length >= 2,
+  });
+
+  const results = (data?.players ?? []).filter(
+    (p) => !selected.some((s) => s.slug === p.slug),
+  );
+
+  return (
+    <div className="space-y-2">
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selected.map((p) => (
+            <span
+              key={p.slug}
+              className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background py-1 pl-1 pr-2 text-xs"
+            >
+              <span className="h-5 w-5 overflow-hidden rounded-full bg-muted">
+                {p.pictureUrl && (
+                  <img src={p.pictureUrl} alt="" className="h-full w-full object-cover" />
+                )}
+              </span>
+              <span className="font-medium">{p.displayName}</span>
+              <button onClick={() => onRemove(p.slug)} className="text-muted-foreground hover:text-foreground">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search a player to require…"
+          className="rounded-full border-border/60 bg-background pl-9"
+        />
+      </div>
+
+      {debounced.length >= 2 && (
+        <div className="max-h-48 overflow-y-auto rounded-xl border border-border/60 bg-background">
+          {isFetching ? (
+            <div className="flex items-center justify-center py-6 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </div>
+          ) : results.length === 0 ? (
+            <div className="py-6 text-center text-xs text-muted-foreground">No players found.</div>
+          ) : (
+            <ul className="divide-y divide-border/40">
+              {results.slice(0, 8).map((p) => (
+                <li key={p.slug}>
+                  <button
+                    onClick={() => {
+                      onAdd({
+                        slug: p.slug,
+                        displayName: p.displayName,
+                        pictureUrl: p.pictureUrl,
+                      });
+                      setQuery("");
+                      setDebounced("");
+                    }}
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-accent"
+                  >
+                    <span className="h-7 w-7 overflow-hidden rounded-full bg-muted">
+                      {p.pictureUrl && (
+                        <img src={p.pictureUrl} alt="" className="h-full w-full object-cover" />
+                      )}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm">{p.displayName}</span>
+                    {p.position && (
+                      <span className="rounded-full border border-border/60 px-1.5 py-0.5 text-[10px] font-semibold">
+                        {p.position}
+                      </span>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+  renderLabel,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: readonly string[];
+  renderLabel?: (v: string) => string;
+}) {
+  return (
+    <div>
+      <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </label>
+      <Select value={value || "__all"} onValueChange={(v) => onChange(!v || v === "__all" ? "" : v)}>
+        <SelectTrigger className="w-full rounded-xl border-border/60 bg-background">
+          <SelectValue placeholder="All" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__all">All</SelectItem>
+          {options.map((o) => (
+            <SelectItem key={o} value={o}>
+              {renderLabel ? renderLabel(o) : o}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/70 bg-card/40 px-6 py-16 text-center">
+      <h3 className="text-lg font-semibold">No squads yet</h3>
+      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+        Be the first to build and share a squad. It only takes a minute.
+      </p>
+      <Link href="/build" className={cn(buttonVariants(), "mt-5 rounded-full")}>
+        <Plus className="mr-1 h-4 w-4" />
+        Build the first squad
+      </Link>
     </div>
   );
 }
