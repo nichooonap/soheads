@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { CaretUp as ChevronUp, CopySimple as Duplicate, Export as Share2, Image as ImageIcon } from "@phosphor-icons/react";
+import { CaretUp as ChevronUp, CopySimple as Duplicate, Export as Share2 } from "@phosphor-icons/react";
 import { toast } from "sonner";
-import { toJpeg } from "html-to-image";
 import { Pitch, type PitchSlotData } from "@/components/Pitch";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,8 +18,6 @@ export default function SquadPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [voteOptimistic, setVoteOptimistic] = useState<number | null>(null);
-  const [exporting, setExporting] = useState(false);
-  const exportRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["squad", id],
@@ -93,27 +90,6 @@ export default function SquadPage() {
     }
   }
 
-  async function onExport() {
-    if (!exportRef.current || !squad) return;
-    setExporting(true);
-    try {
-      const dataUrl = await toJpeg(exportRef.current, {
-        quality: 0.95,
-        cacheBust: true,
-        fetchRequestInit: { mode: "cors" },
-      });
-      const link = document.createElement("a");
-      link.download = `${squad.name.replace(/\s+/g, "-").toLowerCase()}-soheads.jpg`;
-      link.href = dataUrl;
-      link.click();
-      toast.success("Image saved");
-    } catch {
-      toast.error("Export failed — try again");
-    } finally {
-      setExporting(false);
-    }
-  }
-
   function onShare() {
     const url = window.location.href;
     if (navigator.share) {
@@ -176,10 +152,6 @@ export default function SquadPage() {
             <Share2 className="mr-1 h-4 w-4" />
             Share
           </Button>
-          <Button onClick={onExport} disabled={exporting} variant="outline" className="rounded-full">
-            <ImageIcon className="mr-1 h-4 w-4" />
-            {exporting ? "Exporting…" : "Save image"}
-          </Button>
           <Button
             variant="outline"
             className="rounded-full"
@@ -206,46 +178,6 @@ export default function SquadPage() {
 
       <div className="mt-8">
         <Pitch formation={squad.formation as 5 | 7} slots={slots} readOnly />
-      </div>
-
-      {/* Off-screen export container — portrait 9:16, captured as JPEG */}
-      <div
-        ref={exportRef}
-        style={{
-          position: "absolute",
-          left: "-9999px",
-          top: 0,
-          width: "540px",
-          background: "#0a0a0a",
-          padding: "28px",
-          fontFamily: "system-ui, -apple-system, sans-serif",
-          display: "flex",
-          flexDirection: "column",
-          gap: "0px",
-        }}
-      >
-        <div style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div>
-            <p style={{ color: "#22c55e", fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", margin: 0 }}>
-              soheads.com
-            </p>
-            <h2 style={{ color: "#ffffff", fontSize: "24px", fontWeight: 700, margin: "6px 0 0" }}>
-              {squad.name}
-            </h2>
-            <p style={{ color: "#9ca3af", fontSize: "13px", margin: "4px 0 0" }}>
-              {squad.formation}-a-side
-              {squad.competition_tag ? ` · ${squad.competition_tag}` : ""}
-              {squad.gameweek_tag ? ` · ${squad.gameweek_tag}` : ""}
-            </p>
-          </div>
-        </div>
-        <Pitch formation={squad.formation as 5 | 7} slots={slots} readOnly />
-        <div style={{ marginTop: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <p style={{ color: "#6b7280", fontSize: "11px", margin: 0 }}>
-            {Object.entries(summary).map(([r, n]) => `${n} ${RARITY_LABEL[r] ?? r}`).join(" · ")}
-          </p>
-          <p style={{ color: "#4b5563", fontSize: "11px", fontWeight: 700, margin: 0 }}>soheads.com</p>
-        </div>
       </div>
 
       <div className="mt-10">
