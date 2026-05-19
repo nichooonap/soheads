@@ -106,7 +106,7 @@ function PitchLines() {
 function EmptySlot({ position }: { position: string }) {
   return (
     <div className="flex w-[68px] flex-col items-center gap-1 sm:w-[80px]">
-      <div className="flex aspect-[5/7] w-full items-center justify-center rounded-xl border-2 border-dashed border-foreground/30 bg-background/20 backdrop-blur-sm">
+      <div className="flex aspect-[5/7] w-full items-center justify-center border-2 border-dashed border-foreground/30 bg-background/20 backdrop-blur-sm">
         <Plus className="h-5 w-5 text-foreground/60" />
       </div>
       <span className="rounded-full bg-background/70 px-2 py-0.5 text-[10px] font-semibold tracking-wider">

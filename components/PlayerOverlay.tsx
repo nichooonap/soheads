@@ -285,7 +285,7 @@ function CardPicker({
                   key={`${c.rarity}-${c.seasonYear}-${c.position ?? ""}`}
                   onClick={() => setPicked(c)}
                   className={cn(
-                    "group flex flex-col gap-1.5 rounded-xl border p-2 text-left transition",
+                    "group flex flex-col gap-1.5 border p-2 text-left transition",
                     isPicked
                       ? "border-primary bg-primary/5"
                       : "border-border/60 hover:border-border",
