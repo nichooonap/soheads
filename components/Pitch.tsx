@@ -1,7 +1,6 @@
 import { Plus, X } from "@phosphor-icons/react";
 import { getFormation, type Slot } from "@/lib/formations";
 import { cn } from "@/lib/utils";
-import { RARITY_RING, normaliseRarity } from "@/lib/rarity";
 
 
 
@@ -124,16 +123,10 @@ function FilledSlot({
   data: PitchSlotData;
   position: string;
 }) {
-  const rarity = normaliseRarity(data.rarity);
   const img = data.card_image_url ?? data.picture_url;
   return (
     <div className="flex w-[68px] flex-col items-center gap-1 sm:w-[80px]">
-      <div
-        className={cn(
-          "relative aspect-[5/7] w-full overflow-hidden rounded-xl bg-muted ring-2 ring-offset-2 ring-offset-pitch",
-          RARITY_RING[rarity] ?? "ring-foreground/40",
-        )}
-      >
+      <div className="relative aspect-[5/7] w-full overflow-hidden bg-muted">
         {img ? (
           <img
             src={img}
