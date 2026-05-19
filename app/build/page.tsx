@@ -9,12 +9,13 @@ import { PlayerOverlay } from "@/components/PlayerOverlay";
 import { Button } from "@/components/ui/button";
 import { buildBus } from "@/lib/build-bus";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+  Dialog,
+  DialogContent,
+  DialogClose,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -264,14 +265,15 @@ function SaveDialog({
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="border-border/60 bg-card">
-        <div className="mx-auto w-full max-w-lg">
-          <DrawerHeader className="text-left">
-            <DrawerTitle>Save your squad</DrawerTitle>
-          </DrawerHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex flex-col overflow-hidden p-0 max-h-[90vh]">
+        <DialogHeader>
+          <DialogTitle>Save your squad</DialogTitle>
+          <DialogClose />
+        </DialogHeader>
 
-          <div className="space-y-4 px-4 pb-2">
+        <div className="flex-1 overflow-y-auto divide-y divide-border/50">
+          <div className="space-y-4 px-5 py-4">
             <div>
               <Label htmlFor="name">Squad name</Label>
               <Input
@@ -280,83 +282,84 @@ function SaveDialog({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. GW7 bangers"
                 maxLength={80}
-                className="mt-1.5 rounded-xl"
+                className="mt-1.5 rounded-lg"
+                autoFocus
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Competition</Label>
+                <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Competition</Label>
                 <Select value={competition} onValueChange={(v) => setCompetition(v ?? "")}>
-                  <SelectTrigger className="mt-1.5 rounded-xl">
-                    <SelectValue placeholder="Optional" />
+                  <SelectTrigger className="mt-1.5 w-full rounded-lg border-border/60 bg-background text-xs">
+                    <SelectValue>{competition || "Optional"}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {COMPETITIONS.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label>Gameweek</Label>
+                <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Gameweek</Label>
                 <Select value={gameweek} onValueChange={(v) => setGameweek(v ?? "")}>
-                  <SelectTrigger className="mt-1.5 rounded-xl">
-                    <SelectValue placeholder="Optional" />
+                  <SelectTrigger className="mt-1.5 w-full rounded-lg border-border/60 bg-background text-xs">
+                    <SelectValue>{gameweek || "Optional"}</SelectValue>
                   </SelectTrigger>
                   <SelectContent className="max-h-60">
                     {GAMEWEEKS.map((g) => (
-                      <SelectItem key={g} value={g}>
-                        {g}
-                      </SelectItem>
+                      <SelectItem key={g} value={g}>{g}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-
-            <div>
-              <Label>Additional tags</Label>
-              <p className="mt-1 text-xs text-muted-foreground">Pick up to 4 to describe the vibe.</p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {ADDITIONAL_TAGS.map((t) => {
-                  const active = additionalTags.includes(t);
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => toggleTag(t)}
-                      className={cn(
-                        "rounded-full border px-3 py-1 text-xs font-medium transition",
-                        active
-                          ? "border-foreground bg-foreground text-background"
-                          : "border-border/60 text-foreground hover:border-foreground/60",
-                      )}
-                    >
-                      #{t}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
 
-          <DrawerFooter className="flex-row justify-end gap-2">
-            <Button variant="ghost" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button
-              disabled={!name.trim() || mut.isPending}
-              onClick={() => mut.mutate()}
-              className="rounded-full"
-            >
-              {mut.isPending ? "Saving…" : "Save squad"}
-            </Button>
-          </DrawerFooter>
+          <div className="px-5 py-4">
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Tags</p>
+            <p className="mb-3 text-xs text-muted-foreground">Pick up to 4.</p>
+            <div className="flex flex-wrap gap-1.5">
+              {ADDITIONAL_TAGS.map((t) => {
+                const active = additionalTags.includes(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => toggleTag(t)}
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-xs font-medium transition",
+                      active
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border/60 text-foreground hover:border-foreground/60",
+                    )}
+                  >
+                    #{t}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
-      </DrawerContent>
-    </Drawer>
+
+        <DialogFooter>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+          >
+            Cancel
+          </button>
+          <Button
+            disabled={!name.trim() || mut.isPending}
+            onClick={() => mut.mutate()}
+            className="rounded-full"
+            size="sm"
+          >
+            {mut.isPending ? "Saving…" : "Save squad"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
