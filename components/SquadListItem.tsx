@@ -72,15 +72,19 @@ function SquadRow({ squad }: { squad: SquadListSummary }) {
           COLS,
         )}
       >
-        <div className="h-14 w-10 overflow-hidden rounded-sm bg-muted sm:h-16 sm:w-12">
-          {squad.thumbnail_url ? (
-            <img
-              src={squad.thumbnail_url}
-              alt=""
-              loading="lazy"
-              className="h-full w-full object-cover"
-            />
-          ) : null}
+        <div className="grid h-14 w-10 grid-cols-2 gap-[1px] overflow-hidden rounded-sm bg-border/40 sm:h-16 sm:w-12">
+          {(squad.squad_slots ?? []).map((sl, i) => (
+            <div key={i} className="overflow-hidden bg-muted">
+              {sl.picture_url && (
+                <img
+                  src={sl.picture_url}
+                  alt=""
+                  loading="lazy"
+                  className="h-full w-full object-cover object-top"
+                />
+              )}
+            </div>
+          ))}
         </div>
 
         <div className="min-w-0">

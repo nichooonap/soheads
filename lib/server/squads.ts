@@ -127,11 +127,18 @@ export async function listSquadsDb(data: ListSquadsInput) {
     ),
   );
   let cardMap = new Map<string, string>();
+  let pictureMap = new Map<string, string>();
   if (allSlugs.length) {
-    const { data: cards } = await supabaseAdmin
-      .from("player_cards")
-      .select("player_slug, rarity, season_year, card_image_url")
-      .in("player_slug", allSlugs);
+    const [{ data: cards }, { data: playerRows }] = await Promise.all([
+      supabaseAdmin
+        .from("player_cards")
+        .select("player_slug, rarity, season_year, card_image_url")
+        .in("player_slug", allSlugs),
+      supabaseAdmin
+        .from("players")
+        .select("slug, picture_url")
+        .in("slug", allSlugs),
+    ]);
     for (const c of cards ?? []) {
       if (!c.card_image_url) continue;
       const key = `${c.player_slug}|${c.rarity}|${c.season_year}`;
@@ -140,6 +147,9 @@ export async function listSquadsDb(data: ListSquadsInput) {
       if (!cardMap.has(looseKey)) cardMap.set(looseKey, c.card_image_url);
       const slugKey = `${c.player_slug}`;
       if (!cardMap.has(slugKey)) cardMap.set(slugKey, c.card_image_url);
+    }
+    for (const p of playerRows ?? []) {
+      if (p.picture_url) pictureMap.set(p.slug, p.picture_url);
     }
   }
 
@@ -155,7 +165,11 @@ export async function listSquadsDb(data: ListSquadsInput) {
       thumb = cardMap.get(k1) ?? cardMap.get(k2) ?? cardMap.get(k3) ?? null;
       if (thumb) break;
     }
-    return { ...s, thumbnail_url: thumb };
+    const slotsWithPic = slots.map((sl: any) => ({
+      ...sl,
+      picture_url: pictureMap.get(sl.player_slug) ?? null,
+    }));
+    return { ...s, squad_slots: slotsWithPic, thumbnail_url: thumb };
   });
 
   return { squads: withThumb };

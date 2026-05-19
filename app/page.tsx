@@ -482,9 +482,9 @@ function PlayerPicker({
               key={p.slug}
               className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background py-1 pl-1 pr-2 text-xs"
             >
-              <span className="h-5 w-5 overflow-hidden rounded-full bg-muted">
+              <span className="h-5 w-5 overflow-hidden rounded-md bg-muted">
                 {p.pictureUrl && (
-                  <img src={p.pictureUrl} alt="" className="h-full w-full object-cover" />
+                  <img src={p.pictureUrl} alt="" className="h-full w-full object-cover object-top" />
                 )}
               </span>
               <span className="font-medium">{p.displayName}</span>
@@ -530,9 +530,9 @@ function PlayerPicker({
                     }}
                     className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-accent"
                   >
-                    <span className="h-7 w-7 overflow-hidden rounded-full bg-muted">
+                    <span className="h-7 w-7 overflow-hidden rounded-md bg-muted">
                       {p.pictureUrl && (
-                        <img src={p.pictureUrl} alt="" className="h-full w-full object-cover" />
+                        <img src={p.pictureUrl} alt="" className="h-full w-full object-cover object-top" />
                       )}
                     </span>
                     <span className="min-w-0 flex-1 truncate text-sm">{p.displayName}</span>

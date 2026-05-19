@@ -272,10 +272,10 @@ export default function SquadPage() {
                             <img
                               src={p.picture_url}
                               alt={p.display_name}
-                              className="h-8 w-8 rounded-full object-cover"
+                              className="h-8 w-8 rounded-md object-cover object-top"
                             />
                           ) : (
-                            <div className="h-8 w-8 rounded-full bg-muted" />
+                            <div className="h-8 w-8 rounded-md bg-muted" />
                           )}
                           <span className="font-medium">{p?.display_name ?? s.player_slug}</span>
                         </div>
