@@ -126,24 +126,19 @@ function FilledSlot({
   const img = data.card_image_url ?? data.picture_url;
   return (
     <div className="flex w-[68px] flex-col items-center gap-1 sm:w-[80px]">
-      <div className="relative aspect-[5/7] w-full overflow-hidden bg-muted">
+      <div className="relative aspect-[5/7] w-full">
         {img ? (
           <img
             src={img}
             alt={data.display_name}
             loading="lazy"
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-[10px] text-muted-foreground">
+          <div className="flex h-full w-full items-center justify-center bg-black/20 text-[10px] text-white/70">
             {data.display_name.slice(0, 2)}
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-1 pb-1 pt-3">
-          <p className="truncate text-[10px] font-semibold text-white">
-            {data.display_name.split(" ").slice(-1)[0]}
-          </p>
-        </div>
       </div>
       <span className="rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-semibold tracking-wider">
         {position}
