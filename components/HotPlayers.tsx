@@ -88,13 +88,13 @@ export function HotPlayers({
                     active ? "border-primary ring-2 ring-primary/40" : "border-border/60",
                   )}
                 >
-                  <div className="relative aspect-[3/4] w-full overflow-hidden rounded-md bg-muted">
+                  <div className="relative aspect-[5/7] w-full">
                     {p.card_image_url ? (
                       <img
                         src={p.card_image_url}
                         alt={p.display_name}
                         loading="lazy"
-                        className="h-full w-full object-cover transition group-hover:scale-[1.03]"
+                        className="h-full w-full object-contain transition group-hover:scale-[1.03]"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-[10px] text-muted-foreground">

@@ -302,13 +302,13 @@ function CardPicker({
                       : "border-border/60 hover:border-border",
                   )}
                 >
-                  <div className="relative aspect-[5/7] w-full overflow-hidden rounded-lg bg-muted">
+                  <div className="relative aspect-[5/7] w-full">
                     {c.cardImageUrl ? (
                       <img
                         src={c.cardImageUrl}
                         alt=""
                         loading="lazy"
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-contain"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-[10px] text-muted-foreground">
