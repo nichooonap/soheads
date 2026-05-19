@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -17,12 +17,17 @@ import { getDeviceId } from "@/lib/device-id";
 export default function SquadPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [voteOptimistic, setVoteOptimistic] = useState<number | null>(null);
+  const [voteCount, setVoteCount] = useState<number | null>(null);
+  const [hasVoted, setHasVoted] = useState(false);
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["squad", id],
     queryFn: () => getSquad(id),
   });
+
+  useEffect(() => {
+    setHasVoted(localStorage.getItem(`soheads_voted_${id}`) === "1");
+  }, [id]);
 
   const squad = data?.squad;
   const players = data?.players ?? [];
@@ -77,15 +82,22 @@ export default function SquadPage() {
   });
 
   async function onUpvote() {
-    setVoteOptimistic((squad?.votes_count ?? 0) + 1);
+    if (hasVoted) return;
+    const base = squad?.votes_count ?? 0;
+    setVoteCount(base + 1);
+    setHasVoted(true);
     try {
       const res = await upvoteSquad(id, getDeviceId());
-      setVoteOptimistic(res.votes);
-      if (res.alreadyVoted) toast("You've already voted on this squad");
-      else toast.success("Thanks for voting");
-      refetch();
+      setVoteCount(res.votes);
+      if (res.alreadyVoted) {
+        toast("You've already voted on this squad");
+      } else {
+        localStorage.setItem(`soheads_voted_${id}`, "1");
+        toast.success("Thanks for voting");
+      }
     } catch (e: any) {
-      setVoteOptimistic(null);
+      setVoteCount(null);
+      setHasVoted(false);
       toast.error(e.message ?? "Failed to vote");
     }
   }
@@ -144,9 +156,13 @@ export default function SquadPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={onUpvote} variant="outline" className="rounded-full">
+          <Button
+            onClick={onUpvote}
+            variant={hasVoted ? "default" : "outline"}
+            className="rounded-full"
+          >
             <ChevronUp className="mr-1 h-4 w-4" />
-            {voteOptimistic ?? squad.votes_count}
+            {voteCount ?? squad.votes_count}
           </Button>
           <Button onClick={onShare} variant="outline" className="rounded-full">
             <Share2 className="mr-1 h-4 w-4" />

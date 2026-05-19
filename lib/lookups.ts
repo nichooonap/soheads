@@ -26,18 +26,31 @@ export const GAMEWEEKS = Array.from({ length: 100 }, (_, i) => `GW${i + 1}`);
 
 // Curated mood / theme tags users can pick from when saving a squad.
 export const ADDITIONAL_TAGS = [
+  // Vibe
   "Funny",
   "Meme",
-  "Underdogs",
   "Goat squad",
+  "All-stars",
+  "Throwback",
+  // Player archetypes
   "Wonderkids",
   "Veterans",
-  "All-stars",
-  "Budget",
   "Cult heroes",
   "One-club legends",
+  "Underdogs",
+  // Budget / rarity
+  "Budget",
+  "Value play",
+  "Common army",
+  "Full Unique",
+  // Tactical / competitive
+  "Meta pick",
+  "Punt squad",
+  // Theme / challenge
+  "One nation",
   "Derby day",
-  "Throwback",
+  "WC 2026",
+  "Golden era",
 ] as const;
 
 export type Competition = (typeof COMPETITIONS)[number];
