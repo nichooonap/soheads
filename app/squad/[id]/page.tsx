@@ -208,39 +208,43 @@ export default function SquadPage() {
         <Pitch formation={squad.formation as 5 | 7} slots={slots} readOnly />
       </div>
 
-      {/* Off-screen export container — captured as JPEG */}
+      {/* Off-screen export container — portrait 9:16, captured as JPEG */}
       <div
         ref={exportRef}
         style={{
           position: "absolute",
           left: "-9999px",
           top: 0,
-          width: "900px",
+          width: "540px",
           background: "#0a0a0a",
-          padding: "32px",
-          borderRadius: "0px",
+          padding: "28px",
           fontFamily: "system-ui, -apple-system, sans-serif",
+          display: "flex",
+          flexDirection: "column",
+          gap: "0px",
         }}
       >
-        <div style={{ marginBottom: "20px" }}>
-          <p style={{ color: "#6b7280", fontSize: "12px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "6px" }}>
-            soheads.com
-          </p>
-          <h2 style={{ color: "#ffffff", fontSize: "28px", fontWeight: 700, margin: 0 }}>
-            {squad.name}
-          </h2>
-          <p style={{ color: "#9ca3af", fontSize: "14px", marginTop: "4px" }}>
-            {squad.formation}-a-side
-            {squad.competition_tag ? ` · ${squad.competition_tag}` : ""}
-            {squad.gameweek_tag ? ` · ${squad.gameweek_tag}` : ""}
-          </p>
+        <div style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
+            <p style={{ color: "#22c55e", fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", margin: 0 }}>
+              soheads.com
+            </p>
+            <h2 style={{ color: "#ffffff", fontSize: "24px", fontWeight: 700, margin: "6px 0 0" }}>
+              {squad.name}
+            </h2>
+            <p style={{ color: "#9ca3af", fontSize: "13px", margin: "4px 0 0" }}>
+              {squad.formation}-a-side
+              {squad.competition_tag ? ` · ${squad.competition_tag}` : ""}
+              {squad.gameweek_tag ? ` · ${squad.gameweek_tag}` : ""}
+            </p>
+          </div>
         </div>
         <Pitch formation={squad.formation as 5 | 7} slots={slots} readOnly />
         <div style={{ marginTop: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <p style={{ color: "#6b7280", fontSize: "12px" }}>
+          <p style={{ color: "#6b7280", fontSize: "11px", margin: 0 }}>
             {Object.entries(summary).map(([r, n]) => `${n} ${RARITY_LABEL[r] ?? r}`).join(" · ")}
           </p>
-          <p style={{ color: "#4b5563", fontSize: "12px", fontWeight: 600 }}>soheads.com</p>
+          <p style={{ color: "#4b5563", fontSize: "11px", fontWeight: 700, margin: 0 }}>soheads.com</p>
         </div>
       </div>
 

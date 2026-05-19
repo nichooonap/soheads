@@ -174,7 +174,7 @@ export async function getPopularPlayersDb(positionSlot?: string | null): Promise
 
     const { data: slotRows } = await q;
 
-    if (slotRows && slotRows.length >= 20) {
+    if (slotRows && slotRows.length >= 1) {
       const counts = new Map<string, number>();
       for (const { player_slug } of slotRows) {
         counts.set(player_slug, (counts.get(player_slug) ?? 0) + 1);
@@ -189,13 +189,13 @@ export async function getPopularPlayersDb(positionSlot?: string | null): Promise
         .select("slug, display_name, team_name, league_name, position, positions, picture_url")
         .in("slug", topSlugs);
 
-      if (rows && rows.length >= 4) {
+      if (rows && rows.length >= 1) {
         const bySlug = new Map(rows.map((r) => [r.slug, r]));
         const players = topSlugs
           .map((s) => bySlug.get(s))
           .filter(Boolean)
           .map((r: any) => rowToSummary(r));
-        if (players.length >= 4) return { players };
+        if (players.length >= 1) return { players };
       }
     }
   } catch (err) {
