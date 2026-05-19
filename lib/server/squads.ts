@@ -165,11 +165,15 @@ export async function listSquadsDb(data: ListSquadsInput) {
       thumb = cardMap.get(k1) ?? cardMap.get(k2) ?? cardMap.get(k3) ?? null;
       if (thumb) break;
     }
-    const slotsWithPic = slots.map((sl: any) => ({
+    const slotsWithCards = slots.map((sl: any) => ({
       ...sl,
-      picture_url: pictureMap.get(sl.player_slug) ?? null,
+      card_image_url:
+        cardMap.get(`${sl.player_slug}|${sl.rarity}|${sl.season_year}`) ??
+        cardMap.get(`${sl.player_slug}|${sl.rarity}`) ??
+        cardMap.get(sl.player_slug) ??
+        null,
     }));
-    return { ...s, squad_slots: slotsWithPic, thumbnail_url: thumb };
+    return { ...s, squad_slots: slotsWithCards, thumbnail_url: thumb };
   });
 
   return { squads: withThumb };

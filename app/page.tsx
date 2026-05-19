@@ -482,11 +482,6 @@ function PlayerPicker({
               key={p.slug}
               className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background py-1 pl-1 pr-2 text-xs"
             >
-              <span className="h-5 w-5 overflow-hidden rounded-md bg-muted">
-                {p.pictureUrl && (
-                  <img src={p.pictureUrl} alt="" className="h-full w-full object-cover object-top" />
-                )}
-              </span>
               <span className="font-medium">{p.displayName}</span>
               <button onClick={() => onRemove(p.slug)} className="text-muted-foreground hover:text-foreground">
                 <X className="h-3 w-3" />
@@ -530,11 +525,6 @@ function PlayerPicker({
                     }}
                     className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-accent"
                   >
-                    <span className="h-7 w-7 overflow-hidden rounded-md bg-muted">
-                      {p.pictureUrl && (
-                        <img src={p.pictureUrl} alt="" className="h-full w-full object-cover object-top" />
-                      )}
-                    </span>
                     <span className="min-w-0 flex-1 truncate text-sm">{p.displayName}</span>
                     {p.position && (
                       <span className="rounded-full border border-border/60 px-1.5 py-0.5 text-[10px] font-semibold">

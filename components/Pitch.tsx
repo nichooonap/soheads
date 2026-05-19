@@ -123,7 +123,7 @@ function FilledSlot({
   data: PitchSlotData;
   position: string;
 }) {
-  const img = data.card_image_url ?? data.picture_url;
+  const img = data.card_image_url;
   return (
     <div className="flex w-[68px] flex-col items-center gap-1 sm:w-[80px]">
       <div className="relative aspect-[5/7] w-full">

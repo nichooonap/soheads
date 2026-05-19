@@ -264,19 +264,29 @@ export default function SquadPage() {
                 .map((s) => {
                   const p = players.find((x) => x.slug === s.player_slug);
                   const r = normaliseRarity(s.rarity);
+                  const cardImg =
+                    cards.find(
+                      (c) =>
+                        c.player_slug === s.player_slug &&
+                        c.rarity === s.rarity &&
+                        c.season_year === s.season_year,
+                    )?.card_image_url ??
+                    cards.find((c) => c.player_slug === s.player_slug)?.card_image_url ??
+                    null;
                   return (
                     <tr key={s.slot_index} className="border-t border-border/60">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          {p?.picture_url ? (
-                            <img
-                              src={p.picture_url}
-                              alt={p.display_name}
-                              className="h-8 w-8 rounded-md object-cover object-top"
-                            />
-                          ) : (
-                            <div className="h-8 w-8 rounded-md bg-muted" />
-                          )}
+                          <div className="h-12 w-[34px] shrink-0 bg-muted">
+                            {cardImg && (
+                              <img
+                                src={cardImg}
+                                alt={p?.display_name ?? ""}
+                                loading="lazy"
+                                className="h-full w-full object-contain"
+                              />
+                            )}
+                          </div>
                           <span className="font-medium">{p?.display_name ?? s.player_slug}</span>
                         </div>
                       </td>

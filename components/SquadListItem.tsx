@@ -72,19 +72,22 @@ function SquadRow({ squad }: { squad: SquadListSummary }) {
           COLS,
         )}
       >
-        <div className="grid h-14 w-10 grid-cols-2 gap-[1px] overflow-hidden rounded-sm bg-border/40 sm:h-16 sm:w-12">
-          {(squad.squad_slots ?? []).map((sl, i) => (
-            <div key={i} className="overflow-hidden bg-muted">
-              {sl.picture_url && (
-                <img
-                  src={sl.picture_url}
-                  alt=""
-                  loading="lazy"
-                  className="h-full w-full object-cover object-top"
-                />
-              )}
-            </div>
-          ))}
+        <div className="grid h-14 w-10 grid-cols-2 grid-rows-2 gap-[1px] overflow-hidden bg-muted/30 sm:h-16 sm:w-12">
+          {Array.from({ length: 4 }, (_, i) => {
+            const sl = (squad.squad_slots ?? [])[i];
+            return (
+              <div key={i} className="bg-muted">
+                {sl?.card_image_url && (
+                  <img
+                    src={sl.card_image_url}
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full object-contain"
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <div className="min-w-0">

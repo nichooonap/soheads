@@ -10,7 +10,7 @@ type Slot = {
   rarity: string;
   position: string;
   player_slug?: string;
-  picture_url?: string | null;
+  card_image_url?: string | null;
 };
 
 export type SquadSummary = {
