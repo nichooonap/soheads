@@ -171,7 +171,49 @@ function rowToSummary(r: any): PlayerSummary {
 }
 
 export async function getPopularPlayersDb(positionSlot?: string | null): Promise<{ players: PlayerSummary[] }> {
-  const slugs = POPULAR_BY_SLOT[positionSlot ?? ""] ?? POPULAR_BY_SLOT.FW;
+  const pos = positionSlot ?? null;
+
+  // Derive popular players from actual squad picks once enough data exists.
+  try {
+    let q = supabaseAdmin.from("squad_slots").select("player_slug").limit(500);
+    if (pos === "GK") q = q.eq("position", "GK");
+    else if (pos === "DF") q = q.eq("position", "DF");
+    else if (pos === "MD") q = q.eq("position", "MD");
+    else if (pos === "FW") q = q.eq("position", "FW");
+    else if (pos === "EX") q = q.neq("position", "GK"); // EX = any outfield
+
+    const { data: slotRows } = await q;
+
+    if (slotRows && slotRows.length >= 20) {
+      const counts = new Map<string, number>();
+      for (const { player_slug } of slotRows) {
+        counts.set(player_slug, (counts.get(player_slug) ?? 0) + 1);
+      }
+      const topSlugs = [...counts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8)
+        .map(([slug]) => slug);
+
+      const { data: rows } = await supabaseAdmin
+        .from("players")
+        .select("slug, display_name, team_name, league_name, position, positions, picture_url")
+        .in("slug", topSlugs);
+
+      if (rows && rows.length >= 4) {
+        const bySlug = new Map(rows.map((r) => [r.slug, r]));
+        const players = topSlugs
+          .map((s) => bySlug.get(s))
+          .filter(Boolean)
+          .map((r: any) => rowToSummary(r));
+        if (players.length >= 4) return { players };
+      }
+    }
+  } catch (err) {
+    console.error("getPopularPlayersDb dynamic fetch failed:", err);
+  }
+
+  // Fallback: curated list used until enough squads exist in the DB.
+  const slugs = POPULAR_BY_SLOT[pos ?? ""] ?? POPULAR_BY_SLOT.FW;
 
   const { data: rows } = await supabaseAdmin
     .from("players")
