@@ -111,9 +111,9 @@ export function PlayerOverlay({ open, onClose, position, onSelect }: Props) {
                         onClick={() => setPicked(p)}
                         className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-accent"
                       >
-                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-muted">
+                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
                           {p.pictureUrl && (
-                            <img src={p.pictureUrl} alt={p.displayName} className="h-full w-full object-cover" />
+                            <img src={p.pictureUrl} alt={p.displayName} className="h-full w-full object-cover object-top" />
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -223,9 +223,9 @@ function CardPicker({
         <Button variant="ghost" size="icon" onClick={onBack} className="rounded-full">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="h-10 w-10 overflow-hidden rounded-full bg-muted">
+        <div className="h-10 w-10 overflow-hidden rounded-lg bg-muted">
           {player.pictureUrl && (
-            <img src={player.pictureUrl} alt={player.displayName} className="h-full w-full object-cover" />
+            <img src={player.pictureUrl} alt={player.displayName} className="h-full w-full object-cover object-top" />
           )}
         </div>
         <div className="min-w-0">

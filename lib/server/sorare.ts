@@ -148,15 +148,6 @@ function positionMatches(slot: string | null | undefined, player: PlayerSummary)
   return candidates.some((p) => allowed.includes(p));
 }
 
-// Curated popular players per position slot. These are seeded into our DB on
-// first request so the search overlay isn't empty.
-const POPULAR_BY_SLOT: Record<string, string[]> = {
-  GK: ["thibaut-courtois", "alisson-becker", "ederson-santana-de-moraes", "gianluigi-donnarumma", "andre-onana", "marc-andre-ter-stegen"],
-  DF: ["virgil-van-dijk", "ruben-dias", "william-saliba", "achraf-hakimi", "trent-alexander-arnold", "antonio-rudiger", "joao-cancelo", "alphonso-davies"],
-  MD: ["rodrigo-hernandez-cascante", "jude-bellingham", "kevin-de-bruyne", "federico-valverde", "pedri-gonzalez-lopez", "jamal-musiala", "bruno-fernandes", "martin-odegaard"],
-  FW: ["erling-haaland", "kylian-mbappe", "vinicius-jose-paixao-de-oliveira-junior", "harry-kane", "lautaro-martinez", "mohamed-salah", "lionel-messi", "robert-lewandowski"],
-  EX: ["jude-bellingham", "kylian-mbappe", "vinicius-jose-paixao-de-oliveira-junior", "lamine-yamal", "rodrigo-hernandez-cascante", "bukayo-saka"],
-};
 
 function rowToSummary(r: any): PlayerSummary {
   return {
@@ -173,14 +164,13 @@ function rowToSummary(r: any): PlayerSummary {
 export async function getPopularPlayersDb(positionSlot?: string | null): Promise<{ players: PlayerSummary[] }> {
   const pos = positionSlot ?? null;
 
-  // Derive popular players from actual squad picks once enough data exists.
   try {
     let q = supabaseAdmin.from("squad_slots").select("player_slug").limit(500);
     if (pos === "GK") q = q.eq("position", "GK");
     else if (pos === "DF") q = q.eq("position", "DF");
     else if (pos === "MD") q = q.eq("position", "MD");
     else if (pos === "FW") q = q.eq("position", "FW");
-    else if (pos === "EX") q = q.neq("position", "GK"); // EX = any outfield
+    else if (pos === "EX") q = q.neq("position", "GK");
 
     const { data: slotRows } = await q;
 
@@ -212,39 +202,7 @@ export async function getPopularPlayersDb(positionSlot?: string | null): Promise
     console.error("getPopularPlayersDb dynamic fetch failed:", err);
   }
 
-  // Fallback: curated list used until enough squads exist in the DB.
-  const slugs = POPULAR_BY_SLOT[pos ?? ""] ?? POPULAR_BY_SLOT.FW;
-
-  const { data: rows } = await supabaseAdmin
-    .from("players")
-    .select("slug, display_name, team_name, league_name, position, positions, picture_url")
-    .in("slug", slugs);
-
-  const bySlug = new Map(rows?.map((r) => [r.slug, r]) ?? []);
-  const cached = slugs
-    .map((s) => bySlug.get(s))
-    .filter(Boolean)
-    .map((r: any) => rowToSummary(r));
-
-  if (cached.length >= Math.min(6, slugs.length)) return { players: cached };
-
-  const missing = slugs.filter((s) => !bySlug.has(s));
-  const fetched: PlayerSummary[] = [];
-  await Promise.all(
-    missing.map(async (slug) => {
-      try {
-        const name = slug.replace(/-/g, " ");
-        const hits = await algoliaFootballSearch(name);
-        const exact = hits.find((h) => h.slug === slug) ?? hits[0];
-        if (exact) fetched.push(exact);
-      } catch (e) {
-        console.error("popular hydrate failed for", slug, e);
-      }
-    }),
-  );
-  await upsertPlayers(fetched);
-  const merged = [...cached, ...fetched.filter((p) => !bySlug.has(p.slug))];
-  return { players: merged };
+  return { players: [] };
 }
 
 export async function searchPlayersDb(
