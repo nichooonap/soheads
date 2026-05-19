@@ -61,7 +61,7 @@ export function HotPlayers({
 
       <div
         ref={scrollerRef}
-        className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-3 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0"
+        className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0"
       >
         {isLoading
           ? Array.from({ length: 8 }).map((_, i) => (
@@ -84,7 +84,7 @@ export function HotPlayers({
                     })
                   }
                   className={cn(
-                    "group flex w-28 shrink-0 snap-start flex-col gap-1.5 border bg-card p-1.5 text-left transition hover:-translate-y-1 hover:scale-[1.03] hover:border-primary/60 sm:w-32",
+                    "group flex w-28 shrink-0 snap-start flex-col gap-1.5 border bg-card p-1.5 text-left transition hover:border-primary/60 sm:w-32",
                     active ? "border-primary ring-2 ring-primary/40" : "border-border/60",
                   )}
                 >
