@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import CookieConsentBanner from "@/components/cookie-consent";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="dark">
       <body className={`${geist.className} min-h-full flex flex-col`}>
         <Providers>
+          <CookieConsentBanner />
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />

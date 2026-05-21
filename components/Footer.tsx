@@ -12,6 +12,9 @@ export function Footer() {
           <a href="/privacy" className="hover:text-foreground">
             Privacy
           </a>
+          <button data-cc="show-preferencesModal" className="hover:text-foreground cursor-pointer bg-transparent border-0 p-0 text-xs text-muted-foreground">
+            Cookies
+          </button>
           <span className="text-[11px]">
             Not affiliated with Sorare.
           </span>

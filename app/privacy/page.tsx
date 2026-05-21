@@ -40,17 +40,25 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 font-semibold text-foreground">Cookies</h2>
+          <h2 className="mb-2 font-semibold text-foreground">Cookies & Analytics</h2>
           <p>
-            We do not set any cookies. The anonymous ID described above uses{" "}
+            The anonymous squad/vote ID uses{" "}
             <code className="rounded bg-muted px-1 py-0.5 text-xs">localStorage</code>,
             not a cookie.
           </p>
-        </section>
-
-        <section>
-          <h2 className="mb-2 font-semibold text-foreground">Analytics</h2>
-          <p>We do not use any analytics or tracking scripts.</p>
+          <p className="mt-2">
+            With your consent, we use Google Analytics (Google Ireland Limited, Gordon House,
+            Barrow Street, Dublin 4, Ireland) to understand how visitors use the site. Google
+            Analytics sets cookies to collect anonymised usage data. If you decline, no analytics
+            cookies are set. You can change your preference at any time via the "Cookies" link in
+            the footer. Legal basis: Art. 6(1)(a) GDPR (consent).
+          </p>
+          <p className="mt-2">
+            For more information, see{" "}
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+              Google&apos;s privacy policy
+            </a>.
+          </p>
         </section>
 
         <section>

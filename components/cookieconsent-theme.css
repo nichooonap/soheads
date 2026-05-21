@@ -1,0 +1,22 @@
+#cc-main {
+  --cc-bg: hsl(240, 10%, 4%);
+  --cc-primary-color: hsl(0, 0%, 93%);
+  --cc-secondary-color: hsl(0, 0%, 52%);
+  --cc-btn-primary-bg: hsl(0, 0%, 93%);
+  --cc-btn-primary-color: hsl(240, 10%, 4%);
+  --cc-btn-primary-hover-bg: hsl(0, 0%, 80%);
+  --cc-btn-secondary-bg: transparent;
+  --cc-btn-secondary-color: hsl(0, 0%, 52%);
+  --cc-btn-secondary-border-color: rgba(255, 255, 255, 0.1);
+  --cc-btn-secondary-hover-bg: rgba(255, 255, 255, 0.06);
+  --cc-btn-secondary-hover-color: hsl(0, 0%, 85%);
+  --cc-btn-border-radius: 9999px;
+  --cc-modal-border-radius: 12px;
+  --cc-overlay-bg: rgba(0, 0, 0, 0.7);
+  --cc-toggle-on-bg: hsl(0, 0%, 93%);
+  --cc-toggle-off-bg: rgba(255, 255, 255, 0.15);
+  --cc-toggle-enabled-icon-color: hsl(240, 10%, 4%);
+  --cc-separator-border-color: rgba(255, 255, 255, 0.07);
+  --cc-cookie-category-block-bg: rgba(255, 255, 255, 0.04);
+  --cc-cookie-category-block-border: rgba(255, 255, 255, 0.06);
+}
