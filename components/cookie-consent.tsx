@@ -44,7 +44,7 @@ export default function CookieConsentBanner() {
               description:
                 'We use Google Analytics to understand how visitors use soheads. See our <a href="/privacy">Privacy Policy</a>.',
               acceptAllBtn: "Accept all",
-              rejectAllBtn: "Essential only",
+              acceptNecessaryBtn: "Essential only",
               showPreferencesBtn: "Preferences",
             },
             preferencesModal: {
