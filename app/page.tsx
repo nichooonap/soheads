@@ -114,7 +114,7 @@ export default function HomePage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
       <section className="mb-10">
-        <h1 className="font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
+        <h1 className="font-heading text-4xl font-extrabold italic tracking-tight sm:text-5xl">
           Build your dream lineup.
         </h1>
         <p className="mt-3 max-w-xl text-muted-foreground">
