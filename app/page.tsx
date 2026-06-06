@@ -114,7 +114,7 @@ export default function HomePage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
       <section className="mb-10">
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+        <h1 className="font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
           Build your dream lineup.
         </h1>
         <p className="mt-3 max-w-xl text-muted-foreground">
@@ -604,7 +604,7 @@ function ActiveChip({ label, onClear }: { label: string; onClear: () => void }) 
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/70 bg-card/40 px-6 py-16 text-center">
-      <h3 className="text-lg font-semibold">No squads yet</h3>
+      <h3 className="font-heading text-lg font-semibold">No squads yet</h3>
       <p className="mt-1 max-w-sm text-sm text-muted-foreground">
         Be the first to build and share a squad. It only takes a minute.
       </p>

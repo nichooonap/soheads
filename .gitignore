@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# nicho brand pipeline (lokale Arbeitsdateien, nicht deployen/versionieren)
+/brand/
+/content/
+/research/
+/CHECKLIST.md
